@@ -82,7 +82,7 @@ const handleCalculateMonthlyRent = async (houseId, month, year) => {
   };
 };
 
-exports.calculateMonthlyRent = async (req, res) => {
+const calculateMonthlyRent = async (req, res) => {
   try {
     const resObj = await handleCalculateMonthlyRent(
       req.params.houseId,
@@ -93,4 +93,9 @@ exports.calculateMonthlyRent = async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
+};
+
+module.exports = {
+  handleCalculateMonthlyRent,
+  calculateMonthlyRent,
 };
