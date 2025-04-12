@@ -1,5 +1,15 @@
 const messageController = require("../controllers/messageController");
 
+function parseThaiMonthYear(text) {
+  const monthMatch = text.match(/เดือน\s*(\d{1,2})/);
+  const yearMatch = text.match(/ปี\s*(\d{4})/);
+
+  const month = monthMatch ? parseInt(monthMatch[1]) : null;
+  const year = yearMatch ? parseInt(yearMatch[1]) : null;
+
+  return { month, year };
+}
+
 async function messageRoute(req, res) {
   const events = req.body.events;
 
@@ -7,10 +17,16 @@ async function messageRoute(req, res) {
 
   for (const event of events) {
     if (event.type === "message") {
-      switch (event.message.text) {
-        case "ค่าน้ำค่าไฟ":
-          await messageController.handleSendRentPrice(event.source.userId, 5, 3, 2025);
-          break;
+      const text = event.message.text;
+
+      if (/ค่าน้ำค่าไฟ|ค่าห้องเช่า/.test(text)) {
+        const { month, year } = parseThaiMonthYear(text);
+        await messageController.handleSendRentPrice(
+          event.source.userId,
+          5,
+          month,
+          year
+        );
       }
     }
   }
