@@ -9,7 +9,7 @@ async function messageRoute(req, res) {
     if (event.type === "message") {
       switch (event.message.text) {
         case "ค่าน้ำค่าไฟ":
-          await messageController.handleSendRentPrice(event.source.userId, 5);
+          await messageController.handleSendRentPrice(event.source.userId, 5, 3, 2025);
           break;
       }
     }

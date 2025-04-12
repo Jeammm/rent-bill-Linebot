@@ -1,9 +1,9 @@
 const rentingController = require("./rentingController");
 const client = require("../lineClient");
 
-async function handleSendRentPrice(userId, houseId) {
+async function handleSendRentPrice(userId, houseId, month, year) {
   try {
-    const data = await rentingController.handleCalculateMonthlyRent(houseId);
+    const data = await rentingController.handleCalculateMonthlyRent(houseId, month, year);
 
     await client.pushMessage(userId, {
       type: "text",
