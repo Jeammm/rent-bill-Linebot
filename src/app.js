@@ -3,7 +3,7 @@ const app = express();
 const houseRoutes = require("./routes/houseRoutes");
 const meterRecordRoutes = require("./routes/meterRecordRoutes");
 const rentingRoutes = require("./routes/rentingRoutes");
-const handleSlip = require("./routes/sendSlipRoutes");
+const messageRoute = require("./routes/messageRoute");
 
 require("dotenv").config();
 
@@ -13,7 +13,7 @@ app.use("/api/houses", houseRoutes);
 app.use("/api/meter-records", meterRecordRoutes);
 app.use("/api/rentings", rentingRoutes);
 
-app.post('/webhook', express.json(), handleSlip);
+app.post('/webhook', express.json(), messageRoute);
 
 const { swaggerUi, specs } = require("./swagger");
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
