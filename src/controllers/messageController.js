@@ -2,6 +2,7 @@ const rentingController = require("./rentingController");
 const meterRecordController = require("./meterRecordController");
 const client = require("../lineClient");
 const db = require("../models/db");
+const HELP_MESSAGE = require("../utils/helpMessage").HELP_MESSAGE;
 
 // Helper to split array of messages into chunks (optional)
 function chunkMessages(array, size) {
@@ -222,9 +223,17 @@ async function handleMeterRecordInputConfirmation(event) {
   }
 }
 
+async function handleSendHelpMessage(event) {
+  await client.replyMessage(event, replyToken, {
+    type: "text",
+    text: HELP_MESSAGE,
+  });
+}
+
 module.exports = {
   handleSendRentPrice,
   handleMeterRecordInput,
   handleMeterRecordInputConfirmation,
   handleSendAllRentPrices,
+  handleSendHelpMessage,
 };

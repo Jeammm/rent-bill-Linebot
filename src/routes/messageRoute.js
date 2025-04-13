@@ -17,14 +17,16 @@ async function messageRoute(req, res) {
     if (event.type === "message" && event.message.type === "text") {
       const text = event.message.text.trim();
 
+      // ✅ กรณีพิมพ์ "วิธีใช้"
+      if (text === "วิธีใช้") {
+        await messageController.handleSendHelpMessage(event);
+        continue;
+      }
+
       // Check for rent request message
       if (/ค่าน้ำค่าไฟ|ค่าห้องเช่า/.test(text)) {
         const { month, year } = parseThaiMonthYear(text);
-        await messageController.handleSendAllRentPrices(
-          event,
-          month,
-          year
-        );
+        await messageController.handleSendAllRentPrices(event, month, year);
         continue;
       }
 
