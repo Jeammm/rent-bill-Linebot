@@ -1,6 +1,66 @@
 const rentingController = require("./rentingController");
 const meterRecordController = require("./meterRecordController");
 const client = require("../lineClient");
+const db = require("../models/db");
+
+// Helper to split array of messages into chunks (optional)
+function chunkMessages(array, size) {
+  const result = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+}
+
+async function handleSendAllRentPrices(userId, month, year) {
+  try {
+    // Step 1: Get all houses
+    const houseResult = await db.query("SELECT id, name FROM house");
+    const houses = houseResult.rows;
+
+    const messages = [];
+
+    // Step 2: Loop through each house
+    for (const house of houses) {
+      try {
+        const data = await rentingController.handleCalculateMonthlyRent(
+          house.id,
+          month,
+          year
+        );
+
+        // Step 3: Add successful result to message
+        messages.push(
+          `🏠 บ้าน ${data.house} เดือน ${data.month}/${data.year}:\n` +
+            `- ค่าน้ำ: ${data.cost.water} บาท\n` +
+            `- ค่าไฟ: ${data.cost.electricity} บาท\n` +
+            `- ค่าเช่า: ${data.rent_price} บาท\n` +
+            `- 💰 รวมทั้งหมด: ${data.total} บาท`
+        );
+      } catch (err) {
+        // Step 4: Add failure info
+        messages.push(
+          `⚠️ บ้าน ${house.name}: ข้อมูลยังไม่ครบสำหรับเดือน ${month}/${year}`
+        );
+      }
+    }
+
+    // Step 5: Send all messages (split if too long)
+    const chunks = chunkMessages(messages, 5); // split into batches of 5 messages
+    for (const group of chunks) {
+      await client.pushMessage(userId, {
+        type: "text",
+        text: group.join("\n\n"),
+      });
+    }
+  } catch (err) {
+    console.error("Error sending all rent prices:", err);
+    await client.pushMessage(userId, {
+      type: "text",
+      text: "เกิดข้อผิดพลาดในการดึงข้อมูลค่าเช่าทั้งหมด กรุณาลองใหม่อีกครั้ง",
+    });
+  }
+}
 
 async function handleSendRentPrice(userId, houseId, month, year) {
   try {
@@ -162,4 +222,5 @@ module.exports = {
   handleSendRentPrice,
   handleMeterRecordInput,
   handleMeterRecordInputConfirmation,
+  handleSendAllRentPrices,
 };

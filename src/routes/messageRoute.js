@@ -20,9 +20,8 @@ async function messageRoute(req, res) {
       // Check for rent request message
       if (/ค่าน้ำค่าไฟ|ค่าห้องเช่า/.test(text)) {
         const { month, year } = parseThaiMonthYear(text);
-        await messageController.handleSendRentPrice(
+        await messageController.handleSendAllRentPrices(
           event.source.userId,
-          5,
           month,
           year
         );
