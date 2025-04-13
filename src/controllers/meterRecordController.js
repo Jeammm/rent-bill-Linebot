@@ -1,13 +1,13 @@
 const db = require("../models/db");
 
-async function createRecordHandler(
+async function createRecordHandler({
   value,
   type,
   house_id,
   month,
   year,
-  confirmed = true
-) {
+  confirmed = true,
+}) {
   // Check if the house exists
   const houseResult = await db.query("SELECT * FROM house WHERE id = $1", [
     house_id,
