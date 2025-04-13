@@ -206,6 +206,11 @@ async function handleMeterRecordInputConfirmation(event) {
     }
   } else if (action === "cancel") {
     try {
+      const ids = data
+        .get("ids")
+        .split(",")
+        .map((id) => parseInt(id, 10));
+
       for (const id of ids) {
         await meterRecordController.cancelMeterRecord(id);
       }
