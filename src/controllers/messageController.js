@@ -46,13 +46,13 @@ async function handleMeterRecordInput(event, text) {
     year
   );
 
-  console.log('hi 1');
+  console.log("hi 1");
 
   // 🧾 Build display text grouped by house
   let displayText = "📊 สรุปข้อมูลมิเตอร์ที่ตรวจพบ:\n";
   const matchedValues = [];
 
-  console.log('hi 2');
+  console.log("hi 2");
 
   for (const group of dbResults) {
     displayText += `🏠 ${group.house_name}\n`;
@@ -70,7 +70,7 @@ async function handleMeterRecordInput(event, text) {
     }
   }
 
-  console.log('hi 3');
+  console.log("hi 3");
 
   if (matchedValues.length === 0) {
     await client.replyMessage(event.replyToken, {
@@ -80,14 +80,14 @@ async function handleMeterRecordInput(event, text) {
     return;
   }
 
-  console.log('hi 4');
+  console.log("hi 4");
 
   // Flattened number list for total and confirmation
   const tempData = encodeURIComponent(JSON.stringify(matchedValues));
 
-  console.log('hi 5');
+  console.log("hi 5");
 
-  await client.replyMessage(event.replyToken, [
+  await client.pushMessage(event.userId, [
     {
       type: "text",
       // text: `${displayText}`,
@@ -116,7 +116,7 @@ async function handleMeterRecordInput(event, text) {
     },
   ]);
 
-  console.log('hi 6');
+  console.log("hi 6");
 }
 
 async function handleMeterRecordInputConfirmation(event) {
