@@ -45,7 +45,7 @@ async function handleMeterRecordInput(event, text) {
       year
     );
 
-    console.log('dbResults', dbResults, numbers);
+    console.log("dbResults", dbResults, numbers);
 
     let displayText = "📊 สรุปข้อมูลมิเตอร์ที่ตรวจพบ:\n";
     const insertedIds = [];
@@ -140,10 +140,21 @@ async function handleMeterRecordInputConfirmation(event) {
       });
     }
   } else if (action === "cancel") {
-    await client.replyMessage(event.replyToken, {
-      type: "text",
-      text: "🚫 ยกเลิกการบันทึกข้อมูลแล้ว",
-    });
+    try {
+      for (const id of ids) {
+        await meterRecordController.cancelMeterRecord(id);
+      }
+      await client.replyMessage(event.replyToken, {
+        type: "text",
+        text: "🚫 ยกเลิกการบันทึกข้อมูลแล้ว",
+      });
+    } catch (error) {
+      console.error("Error cancelling meter records:", error);
+      await client.replyMessage(event.replyToken, {
+        type: "text",
+        text: "❌ เกิดข้อผิดพลาดในการยกเลิกข้อมูล",
+      });
+    }
   }
 }
 

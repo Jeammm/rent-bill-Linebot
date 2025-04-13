@@ -24,11 +24,15 @@ async function createRecordHandler({
   return result.rows[0];
 }
 
-exports.confirmMeterRecord = async (id) => {
+async function confirmMeterRecord(id) {
   await db.query("UPDATE meter_record SET confirmed = true WHERE id = $1", [
     id,
   ]);
-};
+}
+
+async function cancelMeterRecord(id) {
+  await db.query("DELETE FROM meter_record WHERE id = $1", [id]);
+}
 
 async function getAllMeterRecords(req, res) {
   try {
@@ -193,4 +197,6 @@ module.exports = {
   updateMeterRecord,
   deleteMeterRecord,
   checkPreviousMeterRecord,
+  confirmMeterRecord,
+  cancelMeterRecord,
 };
