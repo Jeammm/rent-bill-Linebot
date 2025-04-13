@@ -13,7 +13,7 @@ async function createRecordHandler(
     house_id,
   ]);
   if (houseResult.rows.length === 0)
-    throw new Error("House not found");
+    throw new Error("House not found : id", house_id);
 
   // Update the meter record using month and year
   const result = await db.query(
