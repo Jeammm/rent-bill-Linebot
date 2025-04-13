@@ -45,14 +45,13 @@ async function handleMeterRecordInput(event, text) {
     month,
     year
   );
-  
 
   // 🧾 Build display text grouped by house
   let displayText = "📊 สรุปข้อมูลมิเตอร์ที่ตรวจพบ:\n";
   const matchedValues = [];
 
   for (const group of dbResults) {
-    displayText += `🏠 ${group.house_name}\n`;
+    displayText += `\n🏠 ${group.house_name}\n`;
     for (const reading of group.readings) {
       displayText += `• ${reading.type === "WATER" ? "น้ำ" : "ไฟ"}: ${
         reading.previous_value
@@ -76,8 +75,7 @@ async function handleMeterRecordInput(event, text) {
   }
 
   // Flattened number list for total and confirmation
-  // const tempData = encodeURIComponent(JSON.stringify(matchedValues));
-  const tempData = "test"
+  const tempData = encodeURIComponent(JSON.stringify(matchedValues));
 
   await client.replyMessage(event.replyToken, [
     {
@@ -112,16 +110,38 @@ async function handleMeterRecordInputConfirmation(event) {
   const action = data.get("action");
 
   if (action === "save") {
-    const numbers = data.get("numbers").split(",").map(Number);
-    // 💾 TODO: Save numbers to database here
-    await client.replyMessage(event.replyToken, {
-      type: "text",
-      text: `บันทึกข้อมูลแล้ว: ${numbers.join(", ")}`,
-    });
+    try {
+      const encoded = data.get("records");
+      const decoded = decodeURIComponent(encoded);
+      const meterRecords = JSON.parse(decoded); // [{value, type, house_id, month, year}, ...]
+
+      for (const record of meterRecords) {
+        const { value, type, house_id, month, year } = record;
+
+        await meterRecordController.createMeterRecord({
+          value,
+          type,
+          house_id,
+          month,
+          year,
+        });
+      }
+
+      await client.replyMessage(event.replyToken, {
+        type: "text",
+        text: "✅ บันทึกข้อมูลมิเตอร์สำเร็จแล้ว",
+      });
+    } catch (error) {
+      console.error("Error saving meter records:", error.message);
+      await client.replyMessage(event.replyToken, {
+        type: "text",
+        text: "❌ เกิดข้อผิดพลาดระหว่างการบันทึกข้อมูล",
+      });
+    }
   } else if (action === "cancel") {
     await client.replyMessage(event.replyToken, {
       type: "text",
-      text: "ยกเลิกการบันทึกข้อมูล",
+      text: "🚫 ยกเลิกการบันทึกข้อมูลแล้ว",
     });
   }
 }

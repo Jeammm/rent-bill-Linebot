@@ -1,15 +1,32 @@
 const db = require("../models/db");
 
-exports.getAllMeterRecords = async (req, res) => {
+async function createRecordHandler(id, value, type, house_id, month, year) {
+  // Check if the house exists
+  const houseResult = await db.query("SELECT * FROM house WHERE id = $1", [
+    house_id,
+  ]);
+  if (houseResult.rows.length === 0)
+    return res.status(404).json({ error: "House not found" });
+
+  // Update the meter record using month and year
+  const result = await db.query(
+    "UPDATE meter_record SET value = $1, type = $2, house_id = $3, month = $4, year = $5 WHERE id = $6 RETURNING *",
+    [value, type, house_id, month, year, id]
+  );
+
+  return result;
+}
+
+async function getAllMeterRecords(req, res) {
   try {
     const result = await db.query("SELECT * FROM meter_record");
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-};
+}
 
-exports.getMeterRecordById = async (req, res) => {
+async function getMeterRecordById(req, res) {
   try {
     const { id } = req.params;
     const result = await db.query("SELECT * FROM meter_record WHERE id = $1", [
@@ -21,9 +38,9 @@ exports.getMeterRecordById = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-};
+}
 
-exports.getMeterRecordByHouseId = async (req, res) => {
+async function getMeterRecordByHouseId(req, res) {
   try {
     const { id } = req.params;
     const result = await db.query(
@@ -34,9 +51,9 @@ exports.getMeterRecordByHouseId = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-};
+}
 
-exports.createMeterRecord = async (req, res) => {
+async function createMeterRecord(req, res) {
   try {
     const { value, type, house_id, month, year } = req.body;
 
@@ -56,34 +73,31 @@ exports.createMeterRecord = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-};
+}
 
-exports.updateMeterRecord = async (req, res) => {
+async function updateMeterRecord(req, res) {
   try {
     const { id } = req.params;
     const { value, type, house_id, month, year } = req.body;
 
-    // Check if the house exists
-    const houseResult = await db.query("SELECT * FROM house WHERE id = $1", [
+    const result = await createRecordHandler(
+      id,
+      value,
+      type,
       house_id,
-    ]);
-    if (houseResult.rows.length === 0)
-      return res.status(404).json({ error: "House not found" });
-
-    // Update the meter record using month and year
-    const result = await db.query(
-      "UPDATE meter_record SET value = $1, type = $2, house_id = $3, month = $4, year = $5 WHERE id = $6 RETURNING *",
-      [value, type, house_id, month, year, id]
+      month,
+      year
     );
+
     if (result.rows.length === 0)
       return res.status(404).json({ error: "Meter Record not found" });
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-};
+}
 
-exports.deleteMeterRecord = async (req, res) => {
+async function deleteMeterRecord(req, res) {
   try {
     const { id } = req.params;
     const result = await db.query(
@@ -96,9 +110,9 @@ exports.deleteMeterRecord = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-};
+}
 
-exports.checkPreviousMeterRecord = async (values = [], month, year) => {
+async function checkPreviousMeterRecord(values = [], month, year) {
   try {
     const groupedResults = {};
 
@@ -155,4 +169,15 @@ exports.checkPreviousMeterRecord = async (values = [], month, year) => {
     console.error("Error checking previous meter record:", error);
     throw error;
   }
+}
+
+module.exports = {
+  createRecordHandler,
+  getAllMeterRecords,
+  getMeterRecordById,
+  getMeterRecordByHouseId,
+  createMeterRecord,
+  updateMeterRecord,
+  deleteMeterRecord,
+  checkPreviousMeterRecord,
 };
