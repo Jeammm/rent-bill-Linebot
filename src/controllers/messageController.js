@@ -87,34 +87,27 @@ async function handleMeterRecordInput(event, text) {
 
   console.log("hi 5");
 
-  await client.pushMessage(event.userId, [
-    {
-      type: "text",
-      // text: `${displayText}`,
-      text: `test`,
+  await client.replyMessage(event.replyToken, {
+    type: "template",
+    altText: `${displayText}`,
+    template: {
+      type: "confirm",
+      text: "ต้องการบันทึกข้อมูลเหล่านี้หรือไม่?",
+      actions: [
+        {
+          type: "postback",
+          label: "บันทึก",
+          data: `action=save&records=${tempData}`,
+          // data: `action=save&records=test`,
+        },
+        {
+          type: "postback",
+          label: "ยกเลิก",
+          data: "action=cancel",
+        },
+      ],
     },
-    {
-      type: "template",
-      altText: "Confirm the data",
-      template: {
-        type: "confirm",
-        text: "ต้องการบันทึกข้อมูลเหล่านี้หรือไม่?",
-        actions: [
-          {
-            type: "postback",
-            label: "บันทึก",
-            // data: `action=save&records=${tempData}`,
-            data: `action=save&records=test`,
-          },
-          {
-            type: "postback",
-            label: "ยกเลิก",
-            data: "action=cancel",
-          },
-        ],
-      },
-    },
-  ]);
+  });
 
   console.log("hi 6");
 }
