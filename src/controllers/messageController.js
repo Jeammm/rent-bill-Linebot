@@ -52,7 +52,7 @@ async function handleSendAllRentPrices(event, month, year) {
     // Step 5: Send all messages (split if too long)
     const chunks = chunkMessages(messages, 5); // split into batches of 5 messages
     for (const group of chunks) {
-      await client.replyMessage(event, replyToken, {
+      await client.replyMessage(event.replyToken, {
         type: "text",
         text: group.join("\n\n"),
       });
