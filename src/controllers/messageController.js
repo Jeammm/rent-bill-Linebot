@@ -34,21 +34,18 @@ async function handleMeterRecordInput(event, text) {
     .map((n) => Number(n))
     .filter((n) => !isNaN(n) && isFinite(n));
 
-  // 🗓️ Get current month/year (or pass them in if needed)
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
 
-  // 📥 Analyze which house/meter each number belongs to
   const dbResults = await meterRecordController.checkPreviousMeterRecord(
     numbers,
     month,
     year
   );
 
-  // 🧾 Build display text grouped by house
   let displayText = "📊 สรุปข้อมูลมิเตอร์ที่ตรวจพบ:\n";
-  const matchedValues = [];
+  const insertedIds = [];
 
   for (const group of dbResults) {
     displayText += `\n🏠 ${group.house_name}\n`;
@@ -56,26 +53,27 @@ async function handleMeterRecordInput(event, text) {
       displayText += `• ${reading.type === "WATER" ? "น้ำ" : "ไฟ"}: ${
         reading.previous_value
       } ➜ ${reading.current_value}\n`;
-      matchedValues.push({
+
+      const inserted = await meterRecordController.createRecordHandler({
         house_id: group.house_id,
         type: reading.type,
         value: reading.current_value,
         month,
         year,
+        confirmed: false,
       });
+
+      insertedIds.push(inserted.id);
     }
   }
 
-  if (matchedValues.length === 0) {
+  if (insertedIds.length === 0) {
     await client.replyMessage(event.replyToken, {
       type: "text",
       text: "❌ ไม่พบข้อมูลที่ตรงกับเลขที่คุณส่งมา กรุณาตรวจสอบอีกครั้ง",
     });
     return;
   }
-
-  // Flattened number list for total and confirmation
-  const tempData = encodeURIComponent(JSON.stringify(matchedValues));
 
   await client.replyMessage(event.replyToken, [
     {
@@ -87,12 +85,12 @@ async function handleMeterRecordInput(event, text) {
       altText: "Confirm the data",
       template: {
         type: "confirm",
-        text: "ต้องการบันทึกข้อมูลเหล่านี้หรือไม่?",
+        text: "ต้องการยืนยันการบันทึกข้อมูลหรือไม่?",
         actions: [
           {
             type: "postback",
-            label: "บันทึก",
-            data: `action=save&records=${tempData}`,
+            label: "ยืนยัน",
+            data: `action=save&ids=${insertedIds.join(",")}`,
           },
           {
             type: "postback",
@@ -111,31 +109,23 @@ async function handleMeterRecordInputConfirmation(event) {
 
   if (action === "save") {
     try {
-      const encoded = data.get("records");
-      const decoded = decodeURIComponent(encoded);
-      const meterRecords = JSON.parse(decoded); // [{value, type, house_id, month, year}, ...]
-
-      for (const record of meterRecords) {
-        const { value, type, house_id, month, year } = record;
-
-        await meterRecordController.createMeterRecord({
-          value,
-          type,
-          house_id,
-          month,
-          year,
-        });
+      const ids = data
+        .get("ids")
+        .split(",")
+        .map((id) => parseInt(id, 10));
+      for (const id of ids) {
+        await meterRecordController.confirmMeterRecord(id);
       }
 
       await client.replyMessage(event.replyToken, {
         type: "text",
-        text: "✅ บันทึกข้อมูลมิเตอร์สำเร็จแล้ว",
+        text: "✅ ยืนยันและบันทึกข้อมูลสำเร็จแล้ว",
       });
-    } catch (error) {
-      console.error("Error saving meter records:", error.message);
+    } catch (err) {
+      console.error("Error confirming meter records:", err);
       await client.replyMessage(event.replyToken, {
         type: "text",
-        text: "❌ เกิดข้อผิดพลาดระหว่างการบันทึกข้อมูล",
+        text: "❌ เกิดข้อผิดพลาดในการยืนยันข้อมูล",
       });
     }
   } else if (action === "cancel") {

@@ -1,6 +1,13 @@
 const db = require("../models/db");
 
-async function createRecordHandler(id, value, type, house_id, month, year) {
+async function createRecordHandler(
+  value,
+  type,
+  house_id,
+  month,
+  year,
+  confirmed = true
+) {
   // Check if the house exists
   const houseResult = await db.query("SELECT * FROM house WHERE id = $1", [
     house_id,
@@ -10,12 +17,18 @@ async function createRecordHandler(id, value, type, house_id, month, year) {
 
   // Update the meter record using month and year
   const result = await db.query(
-    "UPDATE meter_record SET value = $1, type = $2, house_id = $3, month = $4, year = $5 WHERE id = $6 RETURNING *",
-    [value, type, house_id, month, year, id]
+    "INSERT INTO meter_record (value, type, house_id, month, year, confirmed) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+    [value, type, house_id, month, year, confirmed]
   );
 
-  return result;
+  return result.rows[0];
 }
+
+exports.confirmMeterRecord = async (id) => {
+  await db.query("UPDATE meter_record SET confirmed = true WHERE id = $1", [
+    id,
+  ]);
+};
 
 async function getAllMeterRecords(req, res) {
   try {
