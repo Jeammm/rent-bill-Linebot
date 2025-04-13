@@ -14,6 +14,10 @@ function chunkMessages(array, size) {
 
 async function handleSendAllRentPrices(userId, month, year) {
   try {
+    const now = new Date();
+    month = month ? parseInt(month) : now.getMonth() + 1;
+    year = year ? parseInt(year) : now.getFullYear();
+
     // Step 1: Get all houses
     const houseResult = await db.query("SELECT id, name FROM house");
     const houses = houseResult.rows;
@@ -40,7 +44,7 @@ async function handleSendAllRentPrices(userId, month, year) {
       } catch (err) {
         // Step 4: Add failure info
         messages.push(
-          `⚠️ บ้าน ${house.name}: ข้อมูลยังไม่ครบสำหรับเดือน ${month}/${year || now.getFullYear()}`
+          `⚠️ บ้าน ${house.name}: ข้อมูลยังไม่ครบสำหรับเดือน ${month}/${year}`
         );
       }
     }
