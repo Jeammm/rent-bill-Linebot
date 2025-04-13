@@ -45,7 +45,7 @@ async function handleMeterRecordInput(event, text) {
       year
     );
 
-    console.log('dbResults', dbResults, numbers);
+    console.log("dbResults", dbResults, numbers);
 
     let displayText = "📊 สรุปข้อมูลมิเตอร์ที่ตรวจพบ:\n";
     const insertedIds = [];
@@ -57,14 +57,14 @@ async function handleMeterRecordInput(event, text) {
           reading.previous_value
         } ➜ ${reading.current_value}\n`;
 
-        const inserted = await meterRecordController.createRecordHandler({
-          house_id: group.house_id,
-          type: reading.type,
-          value: reading.current_value,
+        const inserted = await meterRecordController.createRecordHandler(
+          (house_id = group.house_id),
+          (type = reading.type),
+          (value = reading.current_value),
           month,
           year,
-          confirmed: false,
-        });
+          (confirmed = false)
+        );
 
         insertedIds.push(inserted.id);
       }
