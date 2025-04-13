@@ -224,7 +224,7 @@ async function handleMeterRecordInputConfirmation(event) {
 }
 
 async function handleSendHelpMessage(event) {
-  await client.replyMessage(event, replyToken, {
+  await client.replyMessage(event.replyToken, {
     type: "text",
     text: HELP_MESSAGE,
   });
