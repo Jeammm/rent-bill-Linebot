@@ -40,7 +40,7 @@ async function handleSendAllRentPrices(userId, month, year) {
       } catch (err) {
         // Step 4: Add failure info
         messages.push(
-          `⚠️ บ้าน ${house.name}: ข้อมูลยังไม่ครบสำหรับเดือน ${month}/${year}`
+          `⚠️ บ้าน ${house.name}: ข้อมูลยังไม่ครบสำหรับเดือน ${month}/${year || now.getFullYear()}`
         );
       }
     }
