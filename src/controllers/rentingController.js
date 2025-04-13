@@ -25,6 +25,7 @@ const handleCalculateMonthlyRent = async (houseId, month, year) => {
   const result = await db.query(
     `SELECT * FROM meter_record 
      WHERE house_id = $1 
+     AND confirmed = true
      AND (
        (month = $2 AND year = $3) OR
        (month = $4 AND year = $5)

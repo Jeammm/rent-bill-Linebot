@@ -29,78 +29,87 @@ async function handleSendRentPrice(userId, houseId, month, year) {
 }
 
 async function handleMeterRecordInput(event, text) {
-  const numbers = text
-    .split(/\s+/)
-    .map((n) => Number(n))
-    .filter((n) => !isNaN(n) && isFinite(n));
+  try {
+    const numbers = text
+      .split(/\s+/)
+      .map((n) => Number(n))
+      .filter((n) => !isNaN(n) && isFinite(n));
 
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
 
-  const dbResults = await meterRecordController.checkPreviousMeterRecord(
-    numbers,
-    month,
-    year
-  );
+    const dbResults = await meterRecordController.checkPreviousMeterRecord(
+      numbers,
+      month,
+      year
+    );
 
-  let displayText = "📊 สรุปข้อมูลมิเตอร์ที่ตรวจพบ:\n";
-  const insertedIds = [];
+    let displayText = "📊 สรุปข้อมูลมิเตอร์ที่ตรวจพบ:\n";
+    const insertedIds = [];
 
-  for (const group of dbResults) {
-    displayText += `\n🏠 ${group.house_name}\n`;
-    for (const reading of group.readings) {
-      displayText += `• ${reading.type === "WATER" ? "น้ำ" : "ไฟ"}: ${
-        reading.previous_value
-      } ➜ ${reading.current_value}\n`;
+    for (const group of dbResults) {
+      displayText += `\n🏠 ${group.house_name}\n`;
+      for (const reading of group.readings) {
+        displayText += `• ${reading.type === "WATER" ? "น้ำ" : "ไฟ"}: ${
+          reading.previous_value
+        } ➜ ${reading.current_value}\n`;
 
-      const inserted = await meterRecordController.createRecordHandler({
-        house_id: group.house_id,
-        type: reading.type,
-        value: reading.current_value,
-        month,
-        year,
-        confirmed: false,
-      });
+        const inserted = await meterRecordController.createRecordHandler({
+          house_id: group.house_id,
+          type: reading.type,
+          value: reading.current_value,
+          month,
+          year,
+          confirmed: false,
+        });
 
-      insertedIds.push(inserted.id);
+        insertedIds.push(inserted.id);
+      }
     }
-  }
 
-  if (insertedIds.length === 0) {
-    await client.replyMessage(event.replyToken, {
-      type: "text",
-      text: "❌ ไม่พบข้อมูลที่ตรงกับเลขที่คุณส่งมา กรุณาตรวจสอบอีกครั้ง",
-    });
-    return;
-  }
+    if (insertedIds.length === 0) {
+      await client.replyMessage(event.replyToken, {
+        type: "text",
+        text: "❌ ไม่พบข้อมูลที่ตรงกับเลขที่คุณส่งมา กรุณาตรวจสอบอีกครั้ง",
+      });
+      return;
+    }
 
-  await client.replyMessage(event.replyToken, [
-    {
-      type: "text",
-      text: `${displayText}`,
-    },
-    {
-      type: "template",
-      altText: "Confirm the data",
-      template: {
-        type: "confirm",
-        text: "ต้องการยืนยันการบันทึกข้อมูลหรือไม่?",
-        actions: [
-          {
-            type: "postback",
-            label: "ยืนยัน",
-            data: `action=save&ids=${insertedIds.join(",")}`,
-          },
-          {
-            type: "postback",
-            label: "ยกเลิก",
-            data: "action=cancel",
-          },
-        ],
+    await client.replyMessage(event.replyToken, [
+      {
+        type: "text",
+        text: `${displayText}`,
       },
-    },
-  ]);
+      {
+        type: "template",
+        altText: "Confirm the data",
+        template: {
+          type: "confirm",
+          text: "ต้องการยืนยันการบันทึกข้อมูลหรือไม่?",
+          actions: [
+            {
+              type: "postback",
+              label: "ยืนยัน",
+              data: `action=save&ids=${insertedIds.join(",")}`,
+            },
+            {
+              type: "postback",
+              label: "ยกเลิก",
+              data: "action=cancel",
+            },
+          ],
+        },
+      },
+    ]);
+  } catch (error) {
+    client.replyMessage(event.replyToken, [
+      {
+        type: "text",
+        text: `error: ${error.message}`,
+      },
+    ]);
+  }
 }
 
 async function handleMeterRecordInputConfirmation(event) {
