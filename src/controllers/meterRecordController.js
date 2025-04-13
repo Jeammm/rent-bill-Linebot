@@ -102,6 +102,8 @@ exports.checkPreviousMeterRecord = async (values = [], month, year) => {
   try {
     const groupedResults = {};
 
+    console.log(values, month, year);
+
     for (const value of values) {
       // Calculate previous month/year
       let prevMonth = month - 1;
