@@ -12,7 +12,7 @@ function chunkMessages(array, size) {
   return result;
 }
 
-async function handleSendAllRentPrices(userId, month, year) {
+async function handleSendAllRentPrices(event, month, year) {
   try {
     const now = new Date();
     month = month ? parseInt(month) : now.getMonth() + 1;
@@ -52,21 +52,21 @@ async function handleSendAllRentPrices(userId, month, year) {
     // Step 5: Send all messages (split if too long)
     const chunks = chunkMessages(messages, 5); // split into batches of 5 messages
     for (const group of chunks) {
-      await client.pushMessage(userId, {
+      await client.replyMessage(event, replyToken, {
         type: "text",
         text: group.join("\n\n"),
       });
     }
   } catch (err) {
     console.error("Error sending all rent prices:", err);
-    await client.pushMessage(userId, {
+    await client.replyMessage(event.replyToken, {
       type: "text",
       text: "เกิดข้อผิดพลาดในการดึงข้อมูลค่าเช่าทั้งหมด กรุณาลองใหม่อีกครั้ง",
     });
   }
 }
 
-async function handleSendRentPrice(userId, houseId, month, year) {
+async function handleSendRentPrice(event, houseId, month, year) {
   try {
     const data = await rentingController.handleCalculateMonthlyRent(
       houseId,
@@ -74,7 +74,7 @@ async function handleSendRentPrice(userId, houseId, month, year) {
       year
     );
 
-    await client.pushMessage(userId, {
+    await client.replyMessage(event.replyToken, {
       type: "text",
       text:
         `ค่าน้ำค่าไฟของบ้าน ${data.house} เดือน ${data.month}/${data.year}:\n\n` +
@@ -85,7 +85,7 @@ async function handleSendRentPrice(userId, houseId, month, year) {
     });
   } catch (error) {
     console.error("Error sending rent price:", error);
-    await client.pushMessage(userId, {
+    await client.replyMessage(event.replyToken, {
       type: "text",
       text: "เกิดข้อผิดพลาดในการคำนวณค่าเช่า กรุณาลองใหม่อีกครั้ง",
     });
