@@ -124,8 +124,6 @@ exports.checkPreviousMeterRecord = async (values = [], month, year) => {
         [prevMonth, prevYear, value]
       );
 
-      console.log('result: ', result.rows);
-
       if (result.rows.length > 0) {
         const match = result.rows[0];
         const houseId = match.house_id;

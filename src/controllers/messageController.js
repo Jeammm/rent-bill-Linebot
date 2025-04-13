@@ -34,9 +34,16 @@ async function handleMeterRecordInput(event, text) {
     .map((n) => Number(n))
     .filter((n) => !isNaN(n) && isFinite(n));
 
+  // 🗓️ Get current month/year (or pass them in if needed)
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+
   // 📥 Analyze which house/meter each number belongs to
   const dbResults = await meterRecordController.checkPreviousMeterRecord(
-    numbers
+    numbers,
+    month,
+    year
   );
 
   // 🧾 Build display text grouped by house

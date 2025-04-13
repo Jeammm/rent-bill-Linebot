@@ -31,7 +31,6 @@ async function messageRoute(req, res) {
 
       // Check if it's a space-separated list of numbers
       if (/^(\d+\s*)+$/.test(text)) {
-        console.log('text: ', text);
         await messageController.handleMeterRecordInput(event, text);
         continue;
       }
