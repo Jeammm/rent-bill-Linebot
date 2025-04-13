@@ -72,7 +72,7 @@ async function handleMeterRecordInput(event, text) {
 
   console.log("hi 3");
 
-  if (matchedValues.length === 0) {
+  if (true) {
     await client.replyMessage(event.replyToken, {
       type: "text",
       text: "❌ ไม่พบข้อมูลที่ตรงกับเลขที่คุณส่งมา กรุณาตรวจสอบอีกครั้ง",
