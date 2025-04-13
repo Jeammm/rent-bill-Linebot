@@ -102,8 +102,6 @@ exports.checkPreviousMeterRecord = async (values = [], month, year) => {
   try {
     const groupedResults = {};
 
-    console.log(values, month, year);
-
     for (const value of values) {
       // Calculate previous month/year
       let prevMonth = month - 1;
@@ -112,8 +110,6 @@ exports.checkPreviousMeterRecord = async (values = [], month, year) => {
         prevMonth = 12;
         prevYear -= 1;
       }
-
-      console.log('1');
 
       // Find the closest record from the previous month with a smaller value
       const result = await db.query(
@@ -128,8 +124,6 @@ exports.checkPreviousMeterRecord = async (values = [], month, year) => {
         [prevMonth, prevYear, value]
       );
 
-      console.log('2');
-
       if (result.rows.length > 0) {
         const match = result.rows[0];
         const houseId = match.house_id;
@@ -141,11 +135,7 @@ exports.checkPreviousMeterRecord = async (values = [], month, year) => {
             house_name: houseName,
             readings: [],
           };
-
-          console.log('3');
         }
-
-        console.log('4');
 
         groupedResults[houseId].readings.push({
           current_value: value,
@@ -154,13 +144,11 @@ exports.checkPreviousMeterRecord = async (values = [], month, year) => {
           month: match.month,
           year: match.year,
         });
-
-        console.log('5');
       } else {
         // If no match, you could optionally store unmatched results
       }
     }
-    console.log('6');
+
     // Convert object to array
     return Object.values(groupedResults);
   } catch (error) {

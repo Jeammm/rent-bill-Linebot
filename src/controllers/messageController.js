@@ -45,14 +45,11 @@ async function handleMeterRecordInput(event, text) {
     month,
     year
   );
-
-  console.log("hi 1");
+  
 
   // 🧾 Build display text grouped by house
   let displayText = "📊 สรุปข้อมูลมิเตอร์ที่ตรวจพบ:\n";
   const matchedValues = [];
-
-  console.log("hi 2");
 
   for (const group of dbResults) {
     displayText += `🏠 ${group.house_name}\n`;
@@ -70,9 +67,7 @@ async function handleMeterRecordInput(event, text) {
     }
   }
 
-  console.log("hi 3");
-
-  if (true) {
+  if (matchedValues.length === 0) {
     await client.replyMessage(event.replyToken, {
       type: "text",
       text: "❌ ไม่พบข้อมูลที่ตรงกับเลขที่คุณส่งมา กรุณาตรวจสอบอีกครั้ง",
@@ -80,36 +75,36 @@ async function handleMeterRecordInput(event, text) {
     return;
   }
 
-  console.log("hi 4");
-
   // Flattened number list for total and confirmation
-  const tempData = encodeURIComponent(JSON.stringify(matchedValues));
+  // const tempData = encodeURIComponent(JSON.stringify(matchedValues));
+  const tempData = "test"
 
-  console.log("hi 5");
-
-  await client.replyMessage(event.replyToken, {
-    type: "template",
-    altText: `${displayText}`,
-    template: {
-      type: "confirm",
-      text: "ต้องการบันทึกข้อมูลเหล่านี้หรือไม่?",
-      actions: [
-        {
-          type: "postback",
-          label: "บันทึก",
-          data: `action=save&records=${tempData}`,
-          // data: `action=save&records=test`,
-        },
-        {
-          type: "postback",
-          label: "ยกเลิก",
-          data: "action=cancel",
-        },
-      ],
+  await client.replyMessage(event.replyToken, [
+    {
+      type: "text",
+      text: `${displayText}`,
     },
-  });
-
-  console.log("hi 6");
+    {
+      type: "template",
+      altText: "Confirm the data",
+      template: {
+        type: "confirm",
+        text: "ต้องการบันทึกข้อมูลเหล่านี้หรือไม่?",
+        actions: [
+          {
+            type: "postback",
+            label: "บันทึก",
+            data: `action=save&records=${tempData}`,
+          },
+          {
+            type: "postback",
+            label: "ยกเลิก",
+            data: "action=cancel",
+          },
+        ],
+      },
+    },
+  ]);
 }
 
 async function handleMeterRecordInputConfirmation(event) {
