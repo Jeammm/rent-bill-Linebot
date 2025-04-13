@@ -29,7 +29,10 @@ async function handleSendRentPrice(userId, houseId, month, year) {
 }
 
 async function handleMeterRecordInput(event, text) {
-  const numbers = text.split(/\s+/).map(Number);
+  const numbers = text
+    .split(/\s+/)
+    .map((n) => Number(n))
+    .filter((n) => !isNaN(n) && isFinite(n));
 
   // 📥 Analyze which house/meter each number belongs to
   const dbResults = await meterRecordController.checkPreviousMeterRecord(
