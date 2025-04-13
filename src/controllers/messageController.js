@@ -34,8 +34,6 @@ async function handleMeterRecordInput(event, text) {
     .map((n) => Number(n))
     .filter((n) => !isNaN(n) && isFinite(n));
 
-  console.log(numbers);
-
   // 📥 Analyze which house/meter each number belongs to
   const dbResults = await meterRecordController.checkPreviousMeterRecord(
     numbers
