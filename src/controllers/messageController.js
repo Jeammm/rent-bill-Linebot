@@ -45,6 +45,8 @@ async function handleMeterRecordInput(event, text) {
       year
     );
 
+    console.log('dbResults', dbResults, numbers);
+
     let displayText = "📊 สรุปข้อมูลมิเตอร์ที่ตรวจพบ:\n";
     const insertedIds = [];
 
