@@ -97,3 +97,62 @@ exports.deleteMeterRecord = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.checkPreviousMeterRecord = async (values = [], month, year) => {
+  try {
+    const groupedResults = {};
+
+    for (const value of values) {
+      // Calculate previous month/year
+      let prevMonth = month - 1;
+      let prevYear = year;
+      if (prevMonth === 0) {
+        prevMonth = 12;
+        prevYear -= 1;
+      }
+
+      // Find the closest record from the previous month with a smaller value
+      const result = await db.query(
+        `
+        SELECT mr.*, h.name AS house_name
+        FROM meter_record mr
+        JOIN house h ON h.id = mr.house_id
+        WHERE mr.month = $1 AND mr.year = $2 AND mr.value < $3
+        ORDER BY ABS(mr.value - $3) ASC
+        LIMIT 1
+        `,
+        [prevMonth, prevYear, value]
+      );
+
+      if (result.rows.length > 0) {
+        const match = result.rows[0];
+        const houseId = match.house_id;
+        const houseName = match.house_name;
+
+        if (!groupedResults[houseId]) {
+          groupedResults[houseId] = {
+            house_id: houseId,
+            house_name: houseName,
+            readings: [],
+          };
+        }
+
+        groupedResults[houseId].readings.push({
+          current_value: value,
+          previous_value: match.value,
+          type: match.type,
+          month: match.month,
+          year: match.year,
+        });
+      } else {
+        // If no match, you could optionally store unmatched results
+      }
+    }
+
+    // Convert object to array
+    return Object.values(groupedResults);
+  } catch (error) {
+    console.error("Error checking previous meter record:", error);
+    throw error;
+  }
+};

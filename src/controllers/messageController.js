@@ -1,4 +1,5 @@
 const rentingController = require("./rentingController");
+const meterRecordController = require("./meterRecordController");
 const client = require("../lineClient");
 
 async function handleSendRentPrice(userId, houseId, month, year) {
@@ -29,31 +30,69 @@ async function handleSendRentPrice(userId, houseId, month, year) {
 
 async function handleMeterRecordInput(event, text) {
   const numbers = text.split(/\s+/).map(Number);
-  const total = numbers.reduce((sum, n) => sum + n, 0);
-  const tempData = numbers.join(",");
 
-  await client.replyMessage(event.replyToken, {
-    type: "template",
-    altText: "Confirm the data",
-    template: {
-      type: "confirm",
-      text: `คุณใส่ตัวเลข: ${numbers.join(
-        ", "
-      )}\nรวม: ${total}\nต้องการบันทึกหรือไม่?`,
-      actions: [
-        {
-          type: "postback",
-          label: "บันทึก",
-          data: `action=save&numbers=${tempData}`,
-        },
-        {
-          type: "postback",
-          label: "ยกเลิก",
-          data: "action=cancel",
-        },
-      ],
+  // 📥 Analyze which house/meter each number belongs to
+  const dbResults = await meterRecordController.checkPreviousMeterRecord(
+    numbers
+  );
+
+  // 🧾 Build display text grouped by house
+  let displayText = "📊 สรุปข้อมูลมิเตอร์ที่ตรวจพบ:\n";
+  const matchedValues = [];
+
+  for (const group of dbResults) {
+    displayText += `🏠 ${group.house_name}\n`;
+    for (const reading of group.readings) {
+      displayText += `• ${reading.type === "WATER" ? "น้ำ" : "ไฟ"}: ${
+        reading.previous_value
+      } ➜ ${reading.current_value}\n`;
+      matchedValues.push({
+        house_id: group.house_id,
+        type: reading.type,
+        value: reading.current_value,
+        month,
+        year,
+      });
+    }
+  }
+
+  if (matchedValues.length === 0) {
+    await client.replyMessage(event.replyToken, {
+      type: "text",
+      text: "❌ ไม่พบข้อมูลที่ตรงกับเลขที่คุณส่งมา กรุณาตรวจสอบอีกครั้ง",
+    });
+    return;
+  }
+
+  // Flattened number list for total and confirmation
+  const tempData = encodeURIComponent(JSON.stringify(matchedValues));
+
+  await client.replyMessage(event.replyToken, [
+    {
+      type: "text",
+      text: `${displayText}`,
     },
-  });
+    {
+      type: "template",
+      altText: "Confirm the data",
+      template: {
+        type: "confirm",
+        text: "ต้องการบันทึกข้อมูลเหล่านี้หรือไม่?",
+        actions: [
+          {
+            type: "postback",
+            label: "บันทึก",
+            data: `action=save&records=${tempData}`,
+          },
+          {
+            type: "postback",
+            label: "ยกเลิก",
+            data: "action=cancel",
+          },
+        ],
+      },
+    },
+  ]);
 }
 
 async function handleMeterRecordInputConfirmation(event) {
