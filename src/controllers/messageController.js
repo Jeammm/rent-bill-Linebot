@@ -90,7 +90,8 @@ async function handleMeterRecordInput(event, text) {
   await client.replyMessage(event.replyToken, [
     {
       type: "text",
-      text: `${displayText}`,
+      // text: `${displayText}`,
+      text: `test`,
     },
     {
       type: "template",
@@ -102,7 +103,8 @@ async function handleMeterRecordInput(event, text) {
           {
             type: "postback",
             label: "บันทึก",
-            data: `action=save&records=${tempData}`,
+            // data: `action=save&records=${tempData}`,
+            data: `action=save&records=test`,
           },
           {
             type: "postback",
